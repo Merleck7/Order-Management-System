@@ -1,115 +1,216 @@
-# 🛒 Order Management System – Challenge 5 (Sprint 1)
+# 🧾 Order Management System
 
-This project was developed using **Spring Boot 3.0** and **Java 17** as part of **Challenge 5** for the Digital NAO program.  
-The goal is to implement a basic **Order Management System** for an online store, connected to a database and properly documented.
-
----
-
-## 🚀 Technologies Used
-- Java 17  
-- Spring Boot 3.0  
-- Spring Data JPA  
-- H2 Database (development environment)  
-- PostgreSQL (production environment)  
-- Maven  
-- Postman (for API testing)
+**Order Management System** is a Spring Boot application designed to manage customer orders and users efficiently.
+It follows a modular architecture and supports multiple environments — **development**, **testing**, and **production** — using **PostgreSQL** as the primary database.
+The system includes full CRUD operations for Orders and basic CRUD operations for Users.
 
 ---
 
-## ⚙️ Project Structure
+## 🧱 Project Structure
+
 ```
 order-management/
 │
-├─ src/main/java/com/meli/ordermanagement/
-│ ├─ OrderManagementApplication.java
-│ ├─ entity/Order.java
-│ ├─ repository/OrderRepository.java
-│ ├─ service/OrderService.java
-│ └─ controller/OrderController.java
+├── .gitignore
+├── pom.xml
+├── README.md
 │
-├─ src/main/resources/
-│ ├─ application.properties
-│ └─ application-prod.properties
+├── scripts/
+│ ├── start-dev.bat
+│ ├── start-test.bat
+│ └── start-prod.bat
 │
-├─ scripts/
-│ └─ start.sh
+├── src/
+│ ├── main/
+│ │ ├── java/
+│ │ │ └── com/meli/ordermanagement/
+│ │ │     ├── OrderManagementApplication.java
+│ │ │     ├── controller/
+│ │ │     │   ├── OrderController.java
+│ │ │     │   └── UserController.java
+│ │ │     ├── model/
+│ │ │     │   ├── Order.java
+│ │ │     │   └── User.java
+│ │ │     ├── repository/
+│ │ │     │   ├── OrderRepository.java 
+│ │ │     │   └── UserRepository.java
+│ │ │     └── service/
+│ │ │         ├── OrderService.java
+│ │ │         └── UserService.java
+│ │ │
+│ │ └── resources/
+│ │     ├── 01_schema.sql
+│ │     ├── 02_data.sql
+│ │     ├── application.yml
+│ │     ├── application-dev.yml
+│ │     ├── application-test.yml
+│ │     ├── application-prod.yml
+│ │     ├── application-prod.properties
+│ │     └── application.properties
+│ │
+│ └── test/
+│     └── java/
+│         └── com/meli/ordermanagement/
+│             └── OrderManagementApplicationTests.java
 │
-├─ README.md
-└─ pom.xml
+└── target/ # (Generated build output, ignored by Git)
 ```
+
 ---
 
-## 💾 Database Configuration (H2)
+## ⚙️ Environment Configuration
 
-File: `src/main/resources/application.properties`
+This project supports **three environment profiles**, each with its own database and logging configuration.
 
-```properties
-spring.datasource.url=jdbc:h2:mem:ordersdb
-spring.datasource.driverClassName=org.h2.Driver
-spring.datasource.username=sa
-spring.datasource.password=
-spring.jpa.hibernate.ddl-auto=update
-spring.h2.console.enabled=true
-spring.h2.console.path=/h2-console
-You can access the console at:
-👉 http://localhost:8080/h2-console
+| Profile | File                 | Database   | Hibernate DDL | SQL Logs |
+| ------- | -------------------- | ---------- | ------------- | -------- |
+| dev     | application-dev.yml  | PostgreSQL | create-drop   | Enabled  |
+| test    | application-test.yml | PostgreSQL | update        | Partial  |
+| prod    | application-prod.yml | PostgreSQL | update        | Disabled |
+
+---
+
+## 🌍 Environment Variables
+
+These variables must be set before running the application:
+
+| Variable    | Description       | Default             |
+| ----------- | ----------------- | ------------------- |
+| DB_HOST     | Database host     | localhost           |
+| DB_PORT     | Database port     | 5432                |
+| DB_NAME     | Database name     | order_management_db |
+| DB_USER     | Database username | postgres            |
+| DB_PASSWORD | Database password | your_password       |
+
+### Example (PowerShell)
+
+```powershell
+$env:DB_USER="postgres"
+$env:DB_PASSWORD="your_password"
+$env:DB_HOST="localhost"
+$env:DB_PORT="5432"
+$env:DB_NAME="order_management_db"
 ```
-________________________________________
 
-## 🧩 API Endpoints
-| Method     | Endpoint       | Description              |
-| ---------- | -------------- | ------------------------ |
-| **POST**   | `/orders`      | Create a new order       |
-| **GET**    | `/orders`      | Retrieve all orders      |
-| **GET**    | `/orders/{id}` | Retrieve an order by ID  |
-| **PUT**    | `/orders/{id}` | Update an existing order |
-| **DELETE** | `/orders/{id}` | Delete an order by ID    |
-________________________________________
-## 📦 Example Request (POST /orders)
+---
+
+## 🧩 Application Profiles
+
+`application.yml` defines global properties and the active profile:
+
+```yaml
+spring:
+  application:
+    name: order-management
+  datasource:
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  profiles:
+    active: dev
+server:
+  port: 8080
+```
+
+Each environment file (`application-dev.yml`, `application-test.yml`, `application-prod.yml`) overrides these base settings.
+
+---
+
+## 🚀 API Endpoints (Sprint 2)
+
+### Orders
+
+| Method | Endpoint       | Description                                                                                                                       |
+| ------ | -------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/orders`      | Create a new order. Requires `customerName`, `product`, `quantity`, `price`, `status`. `totalAmount` is automatically calculated. |
+| GET    | `/orders`      | List all orders.                                                                                                                  |
+| GET    | `/orders/{id}` | Get an order by its ID.                                                                                                           |
+| DELETE | `/orders/{id}` | Delete an order by its ID.                                                                                                        |
+
+**Example JSON for POST /orders:**
+
 ```json
 {
-  "customerName": "Luis Mendoza",
-  "product": "Gaming Laptop",
-  "quantity": 1,
-  "price": 2500.00
+  "customerName": "Juan Perez",
+  "product": "Laptop",
+  "quantity": 2,
+  "price": 15000.50,
+  "status": "Pending"
 }
 ```
-## ✅ Expected Response
+
+### Users
+
+| Method | Endpoint      | Description                                      |
+| ------ | ------------- | ------------------------------------------------ |
+| POST   | `/users`      | Create a new user. Requires `username`, `email`. |
+| GET    | `/users`      | List all users.                                  |
+| GET    | `/users/{id}` | Get a user by ID.                                |
+| DELETE | `/users/{id}` | Delete a user by ID.                             |
+
+**Example JSON for POST /users:**
+
 ```json
 {
-  "id": 1,
-  "customerName": "Luis Mendoza",
-  "product": "Gaming Laptop",
-  "quantity": 1,
-  "price": 2500.0,
-  "createdAt": "2025-10-16T15:00:00"
+  "username": "luis.mendoza",
+  "email": "mendozarl@outlook.es"
 }
 ```
-________________________________________
-## ▶️ Running the Application
-```bash
-Option 1 — Using Maven
-mvn spring-boot:run
-Option 2 — Using the Startup Script
-For Linux/macOS:
-./scripts/start.sh
-For Windows:
-scripts\start.bat
+
+**Example DELETE request:**
+
+```http
+DELETE /users/1
+DELETE /orders/5
 ```
-________________________________________
-## 🧪 Testing with Postman
-•	Import the file orders_postman_collection.json into Postman.
-•	Make sure the application is running at http://localhost:8080.
-•	Test all CRUD operations.
-________________________________________
-## 🌍 Switching to Production Profile
-When deploying in production, use PostgreSQL instead of H2.
-Make sure to configure your PostgreSQL credentials in application-prod.properties (see below) and run with:
+
+---
+
+## 🚀 Running the Application
+
+### Option 1 — Using Maven directly
+
 ```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=prod
+mvn spring-boot:run "-Dspring-boot.run.arguments=--spring.profiles.active=dev"
 ```
-________________________________________
+
+Available profiles:
+
+* dev
+* test
+* prod
+
+### Option 2 — Using startup scripts
+
+You can run the predefined `.bat` scripts inside the `scripts/` folder:
+
+#### 🧠 Development
+
+```bash
+scripts\start-dev.bat
+```
+
+#### 🧪 Testing
+
+```bash
+scripts\start-test.bat
+```
+
+#### 🚀 Production
+
+```bash
+scripts\start-prod.bat
+```
+
+Each script automatically activates its respective Spring profile.
+
+---
+
 ## 🧠 Authors and Credits
-Developer: Luis Mendoza
-Evaluator: Digital NAO – Challenge 5
-Version: Sprint 1 – October 2025
+
+* Developer: Luis Mendoza
+* Evaluator: Digital NAO – Challenge 5
+* Version: Sprint 2 – October 2025
+
