@@ -1,8 +1,14 @@
 package com.meli.ordermanagement.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing an Order with auto-calculated totalAmount and creation timestamp.
+ */
 @Entity
 @Table(name = "orders")
 public class Order {
@@ -11,64 +17,130 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "customer_name", nullable = false)
+    @Column(nullable = false)
     private String customerName;
 
-    @Column(name = "product", nullable = false)
+    @Column(nullable = false)
     private String product;
 
-    @Column(name = "quantity", nullable = false)
+    @Column(nullable = false)
     private Integer quantity;
 
-    @Column(name = "price", nullable = false)
-    private Double price;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal price;
 
-    @Column(name = "total_amount", nullable = false)
-    private Double totalAmount;
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal totalAmount;
 
-    @Column(name = "status", nullable = false)
+    @Column(nullable = false)
+    private LocalDateTime orderDate;
+
+    @Column(nullable = false)
     private String status;
 
-    @Column(name = "order_date", nullable = false)
-    private LocalDateTime orderDate;
+    @CreationTimestamp
+    @Column(updatable = false, nullable = false)
+    private LocalDateTime createdAt;
 
     public Order() {}
 
-    // Getters y Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getCustomerName() { return customerName; }
-    public void setCustomerName(String customerName) { this.customerName = customerName; }
-    public String getProduct() { return product; }
-    public void setProduct(String product) { this.product = product; }
-    public Integer getQuantity() { return quantity; }
-    public void setQuantity(Integer quantity) { this.quantity = quantity; }
-    public Double getPrice() { return price; }
-    public void setPrice(Double price) { this.price = price; }
-    public Double getTotalAmount() { return totalAmount; }
-    public void setTotalAmount(Double totalAmount) { this.totalAmount = totalAmount; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-    public LocalDateTime getOrderDate() { return orderDate; }
-    public void setOrderDate(LocalDateTime orderDate) { this.orderDate = orderDate; }
-
-    // Método que se ejecuta antes de persistir la entidad
+    // --- Auto-calculation of totalAmount before persisting or updating ---
     @PrePersist
-    public void prePersist() {
-        if (orderDate == null) {
-            orderDate = LocalDateTime.now();
-        }
-        if (totalAmount == null && price != null && quantity != null) {
-            totalAmount = price * quantity;
+    @PreUpdate
+    private void calculateTotalAmount() {
+        if (price != null && quantity != null) {
+            this.totalAmount = price.multiply(BigDecimal.valueOf(quantity));
         }
     }
+
+    // ---------- Getters & Setters ----------
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public String getProduct() {
+        return product;
+    }
+
+    public void setProduct(String product) {
+        this.product = product;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+        calculateTotalAmount();
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+        calculateTotalAmount();
+    }
+
+    public BigDecimal getTotalAmount() {
+        return totalAmount;
+    }
+
+    /**
+     * ✅ Se agrega este setter para compatibilidad con servicios o tests.
+     * Aunque normalmente se calcula automáticamente, este método permite
+     * establecerlo manualmente si es necesario (por ejemplo, en pruebas unitarias).
+     */
+    public void setTotalAmount(BigDecimal totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public LocalDateTime getOrderDate() {
+        return orderDate;
+    }
+
+    public void setOrderDate(LocalDateTime orderDate) {
+        this.orderDate = orderDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    @Override
+    public String toString() {
+        return "Order{" +
+                "id=" + id +
+                ", customerName='" + customerName + '\'' +
+                ", product='" + product + '\'' +
+                ", quantity=" + quantity +
+                ", price=" + price +
+                ", totalAmount=" + totalAmount +
+                ", orderDate=" + orderDate +
+                ", status='" + status + '\'' +
+                ", createdAt=" + createdAt +
+                '}';
+    }
 }
-
-
-
-
-
-
-
-
-

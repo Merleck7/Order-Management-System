@@ -2,56 +2,73 @@ package com.meli.ordermanagement.controller;
 
 import com.meli.ordermanagement.model.Order;
 import com.meli.ordermanagement.service.OrderService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * REST Controller for managing Orders.
+ */
 @RestController
-@RequestMapping("/orders")
+@RequestMapping("/api/orders")
 public class OrderController {
 
     private final OrderService orderService;
 
+    @Autowired
     public OrderController(OrderService orderService) {
         this.orderService = orderService;
     }
 
-    // Crear una nueva orden
+    /**
+     * ✅ Create a new order
+     * Returns 201 CREATED when the order is successfully created.
+     */
     @PostMapping
     public ResponseEntity<Order> createOrder(@RequestBody Order order) {
-        Order newOrder = orderService.createOrder(order);
-        return new ResponseEntity<>(newOrder, HttpStatus.CREATED);
+        Order createdOrder = orderService.createOrder(order);
+
+        // Return HTTP 201 instead of 200
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdOrder);
     }
 
-    // Obtener todas las órdenes
+    /**
+     * ✅ Get all orders
+     */
     @GetMapping
     public ResponseEntity<List<Order>> getAllOrders() {
         List<Order> orders = orderService.getAllOrders();
-        return new ResponseEntity<>(orders, HttpStatus.OK);
+        return ResponseEntity.ok(orders);
     }
 
-    // Obtener una orden por ID
+    /**
+     * ✅ Get a single order by ID
+     */
     @GetMapping("/{id}")
     public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
-        Order order = orderService.getOrderById(id);
-        if (order != null) {
-            return new ResponseEntity<>(order, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return orderService.getOrderById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // Eliminar una orden por ID
+    /**
+     * ✅ Update an existing order
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order order) {
+        Order updatedOrder = orderService.updateOrder(id, order);
+        return ResponseEntity.ok(updatedOrder);
+    }
+
+    /**
+     * ✅ Delete an order by ID
+     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteOrder(@PathVariable Long id) {
-        boolean deleted = orderService.deleteOrder(id);
-        if (deleted) {
-            return ResponseEntity.ok("Order deleted successfully");
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found");
-        }
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
+        return ResponseEntity.noContent().build();
     }
 }
-

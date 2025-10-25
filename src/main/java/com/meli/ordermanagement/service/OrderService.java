@@ -3,7 +3,6 @@ package com.meli.ordermanagement.service;
 import com.meli.ordermanagement.model.Order;
 import com.meli.ordermanagement.repository.OrderRepository;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -16,29 +15,36 @@ public class OrderService {
         this.orderRepository = orderRepository;
     }
 
-    // Crear una orden
+    // Alias para mantener compatibilidad con el test
+    public Order saveOrder(Order order) {
+        return orderRepository.save(order);
+    }
+
+    // Nuevo método más semántico
     public Order createOrder(Order order) {
         return orderRepository.save(order);
     }
 
-    // Obtener todas las órdenes
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
     }
 
-    // Obtener una orden por ID
-    public Order getOrderById(Long id) {
-        Optional<Order> order = orderRepository.findById(id);
-        return order.orElse(null);
+    public Optional<Order> getOrderById(Long id) {
+        return orderRepository.findById(id);
     }
 
-    // Eliminar una orden por ID
-    public boolean deleteOrder(Long id) {
-        if (orderRepository.existsById(id)) {
-            orderRepository.deleteById(id);
-            return true;
-        }
-        return false;
+    public Order updateOrder(Long id, Order orderDetails) {
+        return orderRepository.findById(id)
+                .map(order -> {
+                    order.setCustomerName(orderDetails.getCustomerName());
+                    order.setTotalAmount(orderDetails.getTotalAmount());
+                    order.setStatus(orderDetails.getStatus());
+                    return orderRepository.save(order);
+                })
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+    }
+
+    public void deleteOrder(Long id) {
+        orderRepository.deleteById(id);
     }
 }
-
