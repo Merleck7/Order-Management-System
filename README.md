@@ -14,29 +14,20 @@ order-management/
 ├── .gitignore
 ├── pom.xml
 ├── README.md
-│
-├── scripts/
-│ ├── start-dev.bat
-│ ├── start-test.bat
-│ └── start-prod.bat
-│
+││
 ├── src/
 │ ├── main/
 │ │ ├── java/
 │ │ │ └── com/meli/ordermanagement/
 │ │ │     ├── OrderManagementApplication.java
 │ │ │     ├── controller/
-│ │ │     │   ├── OrderController.java
-│ │ │     │   └── UserController.java
+│ │ │     │   └── OrderController.java
 │ │ │     ├── model/
-│ │ │     │   ├── Order.java
-│ │ │     │   └── User.java
+│ │ │     │   └── Order.java
 │ │ │     ├── repository/
-│ │ │     │   ├── OrderRepository.java 
-│ │ │     │   └── UserRepository.java
+│ │ │     │   └── OrderRepository.java 
 │ │ │     └── service/
-│ │ │         ├── OrderService.java
-│ │ │         └── UserService.java
+│ │ │         └── OrderService.java
 │ │ │
 │ │ └── resources/
 │ │     ├── 01_schema.sql

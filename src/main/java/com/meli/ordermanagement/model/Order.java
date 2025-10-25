@@ -44,9 +44,23 @@ public class Order {
 
     public Order() {}
 
-    // --- Auto-calculation of totalAmount before persisting or updating ---
+    // --- Auto-calculation of totalAmount and auto-assign orderDate before persisting or updating ---
     @PrePersist
+    private void prePersist() {
+        if (this.orderDate == null) {
+            this.orderDate = LocalDateTime.now();
+        }
+        calculateTotalAmount();
+    }
+
     @PreUpdate
+    private void preUpdate() {
+        if (this.orderDate == null) {
+            this.orderDate = LocalDateTime.now();
+        }
+        calculateTotalAmount();
+    }
+
     private void calculateTotalAmount() {
         if (price != null && quantity != null) {
             this.totalAmount = price.multiply(BigDecimal.valueOf(quantity));
@@ -100,11 +114,6 @@ public class Order {
         return totalAmount;
     }
 
-    /**
-     * ✅ Se agrega este setter para compatibilidad con servicios o tests.
-     * Aunque normalmente se calcula automáticamente, este método permite
-     * establecerlo manualmente si es necesario (por ejemplo, en pruebas unitarias).
-     */
     public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
     }
