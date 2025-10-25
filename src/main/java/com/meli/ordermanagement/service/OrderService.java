@@ -3,6 +3,7 @@ package com.meli.ordermanagement.service;
 import com.meli.ordermanagement.model.Order;
 import com.meli.ordermanagement.repository.OrderRepository;
 import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,13 +16,14 @@ public class OrderService {
         this.orderRepository = orderRepository;
     }
 
-    // Alias para mantener compatibilidad con el test
     public Order saveOrder(Order order) {
         return orderRepository.save(order);
     }
 
-    // Nuevo método más semántico
     public Order createOrder(Order order) {
+        if (order.getOrderDate() == null) {
+            order.setOrderDate(LocalDateTime.now());
+        }
         return orderRepository.save(order);
     }
 
@@ -37,8 +39,13 @@ public class OrderService {
         return orderRepository.findById(id)
                 .map(order -> {
                     order.setCustomerName(orderDetails.getCustomerName());
-                    order.setTotalAmount(orderDetails.getTotalAmount());
+                    order.setProduct(orderDetails.getProduct());
+                    order.setQuantity(orderDetails.getQuantity());
+                    order.setPrice(orderDetails.getPrice());
                     order.setStatus(orderDetails.getStatus());
+                    if (order.getOrderDate() == null) {
+                        order.setOrderDate(LocalDateTime.now());
+                    }
                     return orderRepository.save(order);
                 })
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
